@@ -1,12 +1,7 @@
-using System;
 using Microsoft.Extensions.Logging;
-using OmniSharp.Extensions.LanguageServer;
-using OmniSharp.Extensions.LanguageServer.Models;
-using OmniSharp.Extensions.LanguageServer.Protocol;
+using OmniSharp.Extensions.LanguageServer.Protocol.Models;
+using OmniSharp.Extensions.LanguageServer.Protocol.Server;
 using OmniSharp.Logging;
-using OmniSharp.Stdio.Protocol;
-using OmniSharp.Stdio.Services;
-using OmniSharp.Utilities;
 
 namespace OmniSharp.LanguageServerProtocol.Logging
 {
@@ -25,7 +20,7 @@ namespace OmniSharp.LanguageServerProtocol.Logging
             var messageType = GetMessageType(logLevel);
             if (messageType.HasValue)
             {
-                _provider._server.LogMessage(new LogMessageParams()
+                _provider._server.Window.LogMessage(new LogMessageParams()
                 {
                     Type = messageType.Value,
                     Message = message

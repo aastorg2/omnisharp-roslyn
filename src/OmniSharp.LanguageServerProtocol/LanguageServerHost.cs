@@ -5,25 +5,25 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using OmniSharp.Extensions.LanguageServer;
-using OmniSharp.Extensions.LanguageServer.Models;
-using OmniSharp.Extensions.LanguageServer.Protocol;
+using OmniSharp.Extensions.LanguageServer.Protocol.Models;
+using OmniSharp.Extensions.LanguageServer.Protocol.Server;
+using OmniSharp.Extensions.LanguageServer.Server;
 using OmniSharp.LanguageServerProtocol.Eventing;
 using OmniSharp.LanguageServerProtocol.Handlers;
 using OmniSharp.Mef;
 using OmniSharp.Models.Diagnostics;
 using OmniSharp.Services;
 using OmniSharp.Utilities;
+using ILanguageServer = OmniSharp.Extensions.LanguageServer.Server.ILanguageServer;
 
 namespace OmniSharp.LanguageServerProtocol
 {
     internal class LanguageServerHost : IDisposable
     {
         private readonly ServiceCollection _services;
-        private readonly LanguageServer _server;
+        private readonly ILanguageServer _server;
         private CompositionHost _compositionHost;
         private readonly LanguageServerLoggerFactory _loggerFactory;
         private readonly CommandLineApplication _application;
@@ -42,8 +42,12 @@ namespace OmniSharp.LanguageServerProtocol
             _services = new ServiceCollection();
             _loggerFactory = new LanguageServerLoggerFactory();
             _services.AddSingleton<ILoggerFactory>(_loggerFactory);
-            _server = new LanguageServer(input, output, _loggerFactory);
-            _server.OnInitialize(Initialize);
+            _server = LanguageServer.From((options) =>
+                options.WithInput(input)
+                .WithOutput(output)
+                .WithLoggerFactory(_loggerFactory)
+                .OnInitialize(Initialize))
+                .GetAwaiter().GetResult();
             _application = application;
             _cancellationTokenSource = cancellationTokenSource;
         }
@@ -59,13 +63,13 @@ namespace OmniSharp.LanguageServerProtocol
         {
             switch (initializeTrace)
             {
-                case InitializeTrace.verbose:
+                case InitializeTrace.Verbose:
                     return LogLevel.Trace;
 
-                case InitializeTrace.off:
+                case InitializeTrace.Off:
                     return LogLevel.Warning;
 
-                case InitializeTrace.messages:
+                case InitializeTrace.Messages:
                 default:
                     return LogLevel.Information;
             }
@@ -157,7 +161,7 @@ namespace OmniSharp.LanguageServerProtocol
             _server.AddHandlers(RenameHandler.Enumerate(_handlers));
             _server.AddHandlers(DocumentSymbolHandler.Enumerate(_handlers));
 
-            _server.LogMessage(new LogMessageParams()
+            _server.Window.LogMessage(new LogMessageParams()
             {
                 Message = "Added handlers... waiting for initialize...",
                 Type = MessageType.Log
@@ -168,15 +172,15 @@ namespace OmniSharp.LanguageServerProtocol
 
         public async Task Start()
         {
-            _server.LogMessage(new LogMessageParams()
+            _server.Window.LogMessage(new LogMessageParams()
             {
                 Message = "Starting server...",
                 Type = MessageType.Log
             });
 
-            await _server.Initialize();
+            //await _server.Initialize();
 
-            _server.LogMessage(new LogMessageParams()
+            _server.Window.LogMessage(new LogMessageParams()
             {
                 Message = "initialized...",
                 Type = MessageType.Log
