@@ -32,7 +32,7 @@ namespace OmniSharp.LanguageServerProtocol.Handlers
             {
                 // TODO: Fix once cake has working support for incremental
                 var documentSyncKind = TextDocumentSyncKind.Incremental;
-                // if (selector.ToString().IndexOf(".cake") > -1) documentSyncKind = TextDocumentSyncKind.Full;
+                if (selector.ToString().IndexOf(".cake") > -1) documentSyncKind = TextDocumentSyncKind.Full;
                 yield return new TextDocumentSyncHandler(openHandler, closeHandler, bufferHandler, selector, documentSyncKind, workspace);
             }
         }

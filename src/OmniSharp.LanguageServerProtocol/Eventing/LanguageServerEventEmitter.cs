@@ -10,9 +10,9 @@ namespace OmniSharp.LanguageServerProtocol.Eventing
 {
     public class LanguageServerEventEmitter : IEventEmitter
     {
-        private readonly ILanguageServer _server;
+        private ILanguageServer _server;
 
-        public LanguageServerEventEmitter(ILanguageServer server)
+        public void SetLanguageServer(ILanguageServer server)
         {
             _server = server;
         }
